@@ -16,12 +16,15 @@
 <script src="{{ asset('assets/vendor_components/moment/min/moment.min.js') }}"></script>
 <script src="{{ asset('assets/vendor_components/fullcalendar/fullcalendar.js') }}"></script>
 <script src="{{ asset('assets/vendor_components/select2/dist/js/select2.full.js') }}"></script>
+<script src="{{ asset('assets/vendor_components/ckeditor/ckeditor.js') }}"></script>
+<script src="{{ asset('assets/vendor_components/dropzone/dropzone.js') }}"></script>
 <script src="{{ asset('assets/vendor_plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('assets/vendor_plugins/JqueryPrintArea/demo/jquery.PrintArea.js') }}"></script>
 
 
 <!-- Template JS -->
 <script src="{{ asset('assets/js/template.js') }}"></script>
+<script src="{{ asset('assets/js/pages/editor.js') }}"></script>
 <script src="{{ asset('assets/js/pages/invoice.js') }}"></script>
 <script src="{{ asset('assets/js/pages/calendar.js') }}"></script>
 <script src="{{ asset('assets/js/pages/dashboard3.js') }}"></script>

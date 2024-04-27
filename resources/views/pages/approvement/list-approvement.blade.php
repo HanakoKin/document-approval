@@ -29,11 +29,6 @@
                 <div class="box">
                     <div class="box-header py-4">
                         <h4 class="box-title">Total Documents need approvement : {{ $totals }} </h4>
-                        <div class="box-controls pull-right d-md-flex d-none">
-                            <a href="{{ route('createDocument') }}" class="btn btn-info btn-sm mb-2 text-decoration-none">
-                                <i class="fal fa-plus-circle"></i> Add
-                            </a>
-                        </div>
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">

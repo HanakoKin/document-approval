@@ -18,7 +18,7 @@ class DocumentApprovalController extends Controller
     {
         $title = 'Approvement Page';
 
-        $type = 'approvement';
+        $type = 'approval';
 
         if (Auth::user()->unit === 'ADMIN') {
             $documents = Document::all();
@@ -48,24 +48,55 @@ class DocumentApprovalController extends Controller
 
             $title = 'Document Sent Page';
 
-            $document = Document::where('id', $id)->where('sender_id', Auth::user()->id)->first();
+            if(Auth::user()->unit === 'ADMIN'){
+
+                $document = Document::where('id', $id)->first();
+
+            } else {
+
+                $document = Document::where('id', $id)->where('sender_id', Auth::user()->id)->first();
+
+            }
+
         } else if ($type === 'receive') {
 
             $title = 'Document Receive Page';
 
-            $document = Document::where('id', $id)->where('receiver_id', Auth::user()->id)->first();
-        } else {
+            if(Auth::user()->unit === 'ADMIN'){
+
+                $document = Document::where('id', $id)->first();
+
+            } else {
+
+                $document = Document::where('id', $id)->where('receiver_id', Auth::user()->id)->first();
+
+            }
+
+        } else if ($type === 'approval'){
 
             $title = 'Approvement Page';
 
-            $document = Document::where('id', $id)->whereHas('approvals', function ($query) {
-                $query->where(function ($subQuery) {
-                    $subQuery->where('approver_id', Auth::user()->id);
-                });
-            })->first();
+            if(Auth::user()->unit === 'ADMIN'){
+
+                $document = Document::where('id', $id)->whereHas('approvals')->first();
+
+            } else {
+
+                $document = Document::where('id', $id)->whereHas('approvals', function ($query) {
+                    $query->where(function ($subQuery) {
+                        $subQuery->where('approver_id', Auth::user()->id);
+                    });
+                })->first();
+
+            }
+
+            $approval = $document->approvals->count();
+
         }
 
-        return view('pages.approvement.approvement', compact('title', 'document', 'type'));
+        // dd($document);
+
+        return view('pages.approvement.approvement', compact('title', 'document', 'type', 'approval'));
     }
 
     public function approve(Request $request, Document $document)

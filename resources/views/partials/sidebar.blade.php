@@ -32,8 +32,8 @@
                             <li class="{{ Request::is('*sent*') ? 'active' : '' }}"><a
                                     href="{{ route('documents', 'sent') }}"><i class="icon-Commit"><span
                                             class="path1"></span><span class="path2"></span></i>Sent</a></li>
-                            <li class="{{ Request::is('*list-approval*') ? 'active' : '' }}"><a
-                                    href="{{ route('list-approval') }}"><i class="icon-Commit"><span
+                            <li class="{{ Request::is('*approval*') ? 'active' : '' }}"><a
+                                    href="{{ route('list-approval', 'approval') }}"><i class="icon-Commit"><span
                                             class="path1"></span><span class="path2"></span></i>Approvement</a></li>
                         </ul>
                     </li>

@@ -26,4 +26,13 @@
     document.getElementById('add-approver-btn').addEventListener('click', function() {
         addApproverInput();
     });
+
+    // Initialize Dropzone manually for each input file element
+    document.querySelectorAll('input[type="file"].dropzone').forEach(function(inputElement) {
+        var dropzone = new Dropzone(inputElement, {
+            paramName: "file", // The name that will be used to transfer the file
+            maxFilesize: 2, // MB
+            addRemoveLinks: true // Allow removing files from the dropzone
+        });
+    });
 </script>

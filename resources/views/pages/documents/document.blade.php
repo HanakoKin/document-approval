@@ -44,7 +44,7 @@
                             <table id="example" class="table table-bordered table-hover display margin-top-10">
                                 <thead>
                                     <tr class="text-center">
-                                        <th scope="col">Picture</th>
+                                        <th scope="col" class="">Subject</th>
                                         <th scope="col" class="min-w-150">Name</th>
                                         <th scope="col" class="min-w-150">Sender</th>
                                         <th scope="col" class="min-w-150">Receiver</th>
@@ -56,9 +56,8 @@
                                 <tbody>
                                     @foreach ($documents as $document)
                                         <tr class="text-center">
-                                            <td><img src="https://source.unsplash.com/50x50?people" alt="User Avatar"
-                                                    class="img-fluid rounded-circle mb-3" style="width: 50px;"></td>
-                                            <td>{{ $document->name }}</td>
+                                            <td>{{ $document->subject }}</td>
+                                            <td>{{ $document->filename }}</td>
                                             <td>{{ $document->sender->name }}</td>
                                             <td>{{ $document->receiver->name }}</td>
                                             <td>{{ $document->status }}</td>

@@ -9,6 +9,7 @@ use App\Models\DocumentApproval;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use App\Models\DocumentApprovalRequirement;
 
 class DocumentController extends Controller
@@ -45,7 +46,7 @@ class DocumentController extends Controller
                     });
                 })->get();
             }
-        } else {
+        } else if ($category === 'approval') {
 
             $title = 'All Documents Approval';
 
@@ -77,15 +78,14 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
+
         $approval_count = count($request->input('approvers'));
 
         $request->merge((['approval_count' => $approval_count]));
 
-        // dd($request);
-
         // Validasi data
-        $validatedData = $request->validate([
-            'document' => 'required|file|max:10240', // Contoh validasi untuk file dengan ukuran maksimum 10MB
+        $validator = Validator::make($request->all(), [
+            'subject' => 'required|string',
             'receiver' => 'required|exists:users,id',
             'sender' => 'required|exists:users,id',
             'approval_count' => 'required|integer|min:0',
@@ -94,12 +94,46 @@ class DocumentController extends Controller
             'approvers_queue' => 'array|required_if:approval_count,>0'
         ]);
 
-        $path = $request->file('document')->store('public/documents');
+        if ($validator->fails()) {
+            $errors = implode(', ', $validator->errors()->all());
+            return back()->with('error', $errors)->withInput();
+        }
+
+        $document = new Document();
+
+        // dd($request->file('document_upload'));
+
+        if($request->hasFile('document_upload')){
+
+            $path = '';
+
+            foreach($request->file('document_upload') as $file) {
+
+                if($file->getSize() > 10485760){
+                    return back()->with('error', 'File is too large')->withInput();
+                }
+
+                $currentPath = $file->store('public/documents');
+                $path .= $currentPath . ' - '; // Memisahkan path dokumen dengan " - "
+                $document->filename = $file->getClientOriginalName();
+            }
+
+            // Menghapus spasi ekstra dan tanda "-" dari akhir path
+            $path = rtrim($path, ' - ');
+
+            $document->path = $path;
+
+        } else {
+
+            $document->filename = '-';
+            $document->document_text = $request->document_text;
+
+        }
+
+
 
         // Simpan dokumen
-        $document = new Document();
-        $document->name = $request->file('document')->getClientOriginalName();
-        $document->path = $path;
+        $document->subject = $request->subject;
         $document->sender_id = $request->sender;
         $document->receiver_id = $request->receiver;
         $document->status = 'Pending'; // Atur status dokumen sesuai kebutuhan

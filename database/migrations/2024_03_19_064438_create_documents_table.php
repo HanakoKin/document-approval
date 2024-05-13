@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
+            $table->string('no_doc')->unique()->nullable();
             $table->string('subject');
+            $table->string('description');
+            $table->string('placeNdate')->nullable();
             $table->string('filename');
+            $table->mediumtext('signature');
             $table->text('document_text')->nullable();
             $table->text('path')->nullable();
             $table->unsignedBigInteger('sender_id');

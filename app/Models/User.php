@@ -56,7 +56,7 @@ class User extends Authenticatable
     // Relasi dengan dokumen yang diterima
     public function receivedDocuments()
     {
-        return $this->hasMany(Document::class, 'receiver_id');
+        return $this->belongsToMany(Document::class, 'receiver_id');
     }
 
     // Relasi dengan persetujuan dokumen

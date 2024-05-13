@@ -11,8 +11,8 @@
             // some browsers report devicePixelRatio as less than 1
             // and only part of the canvas is cleared then.
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
+            canvas.width = 475;
+            canvas.height = 256;
             canvas.getContext("2d").scale(ratio, ratio);
         }
 
@@ -54,18 +54,29 @@
 
     // Initialize signature pads for each canvas
 
-    @php
-        $unit = Auth::user()->unit;
-        $id = Auth::user()->id;
-    @endphp
+    @if ($type === 'approval')
 
-    // console.log({!! $document->approvals[0] !!});
+        console.log({{ Auth::user()->id }});
+        console.log({!! $document->approvals[0]->approver_id !!});
 
-    @for ($i = 0; $i < $approval; $i++)
-        @if ($unit == 'ADMIN' || $id == $document->approvals[$i])
-            initializeSignaturePad('signature-pad-{{ $i }}', 'ttd_{{ $i }}',
-                'clear-{{ $i }}', 'undo-{{ $i }}', 'save-{{ $i }}',
-                'modal-{{ $i }}');
-        @endif
-    @endfor
+        @for ($i = 0; $i < $approval; $i++)
+            @if (Auth::user()->jabatan == 'ADMIN' || Auth::user()->id == $document->approvals[$i]->approver_id)
+                initializeSignaturePad('signature-pad-{{ $i }}', 'signature[{{ $i + 1 }}]',
+                    'clear-{{ $i }}', 'undo-{{ $i }}', 'save-{{ $i }}',
+                    'modal-{{ $i }}');
+            @endif
+        @endfor
+    @endif
+</script>
+
+<script>
+    document.getElementById("approval_status").addEventListener("change", function() {
+        var selectedOption = this.value;
+        console.log(selectedOption);
+        if (selectedOption === "Approved") {
+            document.getElementById("signature_pad").classList.remove("d-none");
+        } else {
+            document.getElementById("signature_pad").classList.add("d-none");
+        }
+    });
 </script>

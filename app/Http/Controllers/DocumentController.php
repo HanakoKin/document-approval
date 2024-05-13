@@ -17,14 +17,13 @@ class DocumentController extends Controller
     public function index($category)
     {
 
-
         $type = $category;
 
         if ($category === 'receive') {
 
             $title = 'All Received Documents';
 
-            if (Auth::user()->unit === 'ADMIN') {
+            if (Auth::user()->jabatan === 'ADMIN') {
                 $documents = Document::all();
             } else {
                 $documents = Document::where('status', 'Approved')->whereHas('approvals', function ($query) {
@@ -37,7 +36,7 @@ class DocumentController extends Controller
 
             $title = 'All Sent Documents';
 
-            if (Auth::user()->unit === 'ADMIN') {
+            if (Auth::user()->jabatan === 'ADMIN') {
                 $documents = Document::all();
             } else {
                 $documents = Document::whereHas('approvals', function ($query) {
@@ -50,7 +49,7 @@ class DocumentController extends Controller
 
             $title = 'All Documents Approval';
 
-            if (Auth::user()->unit === 'ADMIN') {
+            if (Auth::user()->jabatan === 'ADMIN') {
                 $documents = Document::all();
             } else {
                 $documents = Document::whereHas('approvals', function ($query) {
@@ -79,19 +78,45 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
 
+        // dd($request);
+
+        $signatureValues = $request->signature ?? []; // Default value []
+
+        $signatureString = '';
+
+        // Periksa apakah $signatureValues tidak kosong
+        if (!empty($signatureValues) && isset($request->signature[0])) {
+            // Inisialisasi string kosong untuk setiap kolom
+
+            // Loop untuk setiap nilai dalam kolom
+            foreach ($signatureValues as $index => $value) {
+                // Tambahkan index dan nilai ke dalam string
+                $signatureString .= ($request->signature[$index] ?? '-') . ' --- ';;
+            }
+
+        }
+        // Hapus koma terakhir dari string
+        $signatureString = rtrim($signatureString, ' --- ');
+
+        $request->merge(['signature' => $signatureString]);
+
         $approval_count = count($request->input('approvers'));
 
-        $request->merge((['approval_count' => $approval_count]));
+        $request->merge(['approval_count' => $approval_count]);
 
         // Validasi data
         $validator = Validator::make($request->all(), [
+            'no_doc' => 'nullable|unique:documents|string',
             'subject' => 'required|string',
-            'receiver' => 'required|exists:users,id',
+            'description' => 'required|string',
+            'placeNdate' => 'nullable|string',
+            'receiver' => 'required|string',
             'sender' => 'required|exists:users,id',
             'approval_count' => 'required|integer|min:0',
             'approvers' => 'array|required_if:approval_count,>0',
             'approvers.*' => 'required|exists:users,id',
-            'approvers_queue' => 'array|required_if:approval_count,>0'
+            'approvers_queue' => 'array|required_if:approval_count,>0',
+            'signature' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -100,8 +125,6 @@ class DocumentController extends Controller
         }
 
         $document = new Document();
-
-        // dd($request->file('document_upload'));
 
         if($request->hasFile('document_upload')){
 
@@ -130,17 +153,26 @@ class DocumentController extends Controller
 
         }
 
+        if($request->has('no_doc')){
+            $document->no_doc = $request->no_doc;
+        }
 
+        if($request->has('description')){
+            $document->description = $request->description;
+        }
+
+        if($request->has('placeNdate')){
+            $document->placeNdate = $request->placeNdate;
+        }
 
         // Simpan dokumen
         $document->subject = $request->subject;
+        $document->signature = $request->signature;
         $document->sender_id = $request->sender;
         $document->receiver_id = $request->receiver;
-        $document->status = 'Pending'; // Atur status dokumen sesuai kebutuhan
+        $document->status = 'Pending';
         $document->approval_required = $request->approval_count > 0;
         $document->save();
-
-        // dd($document);
 
         // Jika persetujuan diperlukan, simpan informasi persetujuan
         if ($request->approval_count > 0) {
@@ -160,9 +192,8 @@ class DocumentController extends Controller
             ]);
         }
 
-
         // Redirect ke halaman yang sesuai atau tampilkan pesan sukses
-        return redirect()->route('documents', 'sent')->with('success', 'Success send a document.');
+        return redirect()->route('show', 'sent')->with('success', 'Success send a document.');
     }
 
     public function edit($id)

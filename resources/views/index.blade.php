@@ -21,7 +21,7 @@
 <body class="hold-transition light-skin sidebar-mini theme-primary fixed">
 
     {{-- @if ($title === 'Dashboard') --}}
-    <div id="loader"></div>
+    {{-- <div id="loader"></div> --}}
     {{-- @endif --}}
 
     <div class="wrapper">
@@ -33,6 +33,8 @@
         @include('partials.sidebar')
 
         <!-- Main Content -->
+
+        @include('modal.documents.compose')
 
         <div class="content-wrapper">
             <div class="container-full">

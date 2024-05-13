@@ -45,7 +45,7 @@
                                 <thead>
                                     <tr class="text-center">
                                         <th scope="col" class="">Subject</th>
-                                        <th scope="col" class="min-w-150">Name</th>
+                                        <th scope="col" class="min-w-150">File Name</th>
                                         <th scope="col" class="min-w-150">Sender</th>
                                         <th scope="col" class="min-w-150">Receiver</th>
                                         <th scope="col">Status</th>
@@ -76,13 +76,6 @@
                                                         Edit
                                                     </a>
                                                 @endif
-
-
-                                                {{-- <a href="{{ route('deleteUser', ['id' => $document->id]) }}"
-                                                    data-target="document"
-                                                    class="btn btn-danger btn-sm me-2 mb-2 text-decoration-none deleteBtn"><i
-                                                        class="fal fa-trash-alt"></i> Delete
-                                                </a> --}}
 
                                             </td>
                                         </tr>

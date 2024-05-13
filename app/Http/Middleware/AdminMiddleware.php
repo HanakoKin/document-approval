@@ -15,7 +15,7 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->unit === 'ADMIN') {
+        if ($request->user() && $request->user()->jabatan === 'ADMIN') {
             return $next($request);
         }
 

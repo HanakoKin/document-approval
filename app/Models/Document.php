@@ -33,4 +33,11 @@ class Document extends Model
     {
         return $this->hasOne(DocumentApprovalRequirement::class, 'doc_id');
     }
+
+    // Relasi dengan respon dari penyetuju
+    public function response()
+    {
+        return $this->hasOne(DocumentResponse::class, 'doc_id');
+    }
+
 }

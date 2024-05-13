@@ -1,0 +1,113 @@
+@extends('index')
+
+@section('container')
+    <section class="content pt-0">
+
+        @if (session()->has('success'))
+            @include('script.alert.success')
+        @endif
+
+        @if (session()->has('error'))
+            @include('script.alert.error')
+        @endif
+
+
+        <div class="row">
+            <div class="col-xl-12 col-12">
+
+                <div class="d-inline-block align-items-center pb-2">
+                    <nav>
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/dashboard"><i class="mdi mdi-home-outline"></i></a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Tabel Document</li>
+                        </ol>
+                    </nav>
+                </div>
+
+                {{-- Tabel Content --}}
+                <div class="box">
+                    <div class="box-header py-4">
+                        <h4 class="box-title">Total Document {{ ucFirst(trans($category)) }} : {{ $totals }} </h4>
+                        @if ($category === 'sent')
+                            <div class="box-controls pull-right d-md-flex d-none">
+                                <a href="{{ route('createDocument') }}"
+                                    class="btn btn-info btn-sm mb-2 text-decoration-none">
+                                    <i class="fal fa-plus-circle"></i> Add
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table id="example" class="table table-bordered table-hover display margin-top-10">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th scope="col" class="">Subject</th>
+                                        <th scope="col" class="min-w-150">File Name</th>
+                                        <th scope="col" class="min-w-150">Sender</th>
+                                        <th scope="col" class="min-w-150">Receiver</th>
+                                        <th scope="col" class="min-w-150">CC</th>
+                                        <th scope="col" class="min-w-200">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($memos as $memo)
+                                        <tr class="text-center">
+                                            <td>{{ $memo->subject }}</td>
+                                            <td>{{ $memo->filename }}</td>
+                                            <td>{{ $memo->sender->name }}</td>
+                                            <td>{{ $memo->receiver->name }}</td>
+                                            <td>
+                                                @if (count($memo->tembusan) > 1)
+                                                    @foreach ($memo->tembusan as $receiver)
+                                                        {{ $receiver->name }}
+                                                        @if (!$loop->last)
+                                                            , <!-- Pisahkan dengan koma kecuali untuk penerima terakhir -->
+                                                        @endif
+                                                    @endforeach
+                                                @else
+                                                    {{ $memo->tembusan[0]->name }}
+                                                @endif
+                                            </td>
+                                            {{-- <td>
+                                                {{ $memo->tembusan }}
+                                            </td> --}}
+                                            <td>
+
+                                                <a class="btn btn-success btn-sm me-2 mb-2 text-decoration-none"
+                                                    href="{{ route('showMemo', ['type' => $type, 'id' => $memo->id]) }}">
+                                                    <i class="fal fa-eye"></i> Lihat
+                                                </a>
+
+                                                @if ($memo->status === 'Need Revision')
+                                                    <a class="btn btn-warning btn-sm me-2 mb-2 text-decoration-none"
+                                                        href="{{ route('editDocument', $memo->id) }}"><i
+                                                            class="fal fa-pen"></i>
+                                                        Edit
+                                                    </a>
+                                                @endif
+
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal Show Data --}}
+        @include('modal.admin.userShow')
+
+        {{-- JS for Modal --}}
+        @include('script.admin.userShow')
+
+        {{-- JS for Delete --}}
+        @include('script.confirmation.confirm-delete')
+
+    </section>
+@endsection

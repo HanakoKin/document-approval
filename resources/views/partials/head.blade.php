@@ -11,8 +11,8 @@
 
 <!-- Font Awesome -->
 {{-- <script src="https://kit.fontawesome.com/49c61af6d9.js" crossorigin="anonymous"></script> --}}
-<link href="https://cdn.jsdelivr.net/gh/hung1001/font-awesome-pro@4cac1a6/css/all.css" rel="stylesheet"
-    type="text/css" />
+<link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.2-web/css/all.min.css"
+    rel="stylesheet">
 
 <!-- Include SweetAlert library -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
@@ -23,3 +23,5 @@
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@2"></script>
+
+<script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>

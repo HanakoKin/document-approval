@@ -21,8 +21,10 @@
 <script src="{{ asset('assets/vendor_plugins/iCheck/icheck.min.js') }}"></script>
 <script src="{{ asset('assets/vendor_plugins/JqueryPrintArea/demo/jquery.PrintArea.js') }}"></script>
 
-
 <!-- Template JS -->
+{{-- <script src="{{ asset('assets/vendor_plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js') }}"></script> --}}
+<script src="{{ asset('assets/js/pages/mailbox.js') }}"></script>
+<script src="{{ asset('assets/js/pages/form-compose.js') }}"></script>
 <script src="{{ asset('assets/js/template.js') }}"></script>
 <script src="{{ asset('assets/js/pages/editor.js') }}"></script>
 <script src="{{ asset('assets/js/pages/invoice.js') }}"></script>

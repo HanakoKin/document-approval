@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
+use function Laravel\Prompts\error;
+
 class DataController extends Controller
 {
     public function previewData($dataType, $dataId) {
@@ -144,6 +146,53 @@ class DataController extends Controller
         }
 
 
+    }
+
+    public function chartData($year){
+        $targetYear = $year;
+        // $unit = Auth::user()->unit;
+
+        $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        $jenisInsiden = [
+            'Documents',
+            'Memos',
+            'Both',
+        ];
+
+        foreach ($months as $monthIndex => $month) {
+            $targetMonth = ($monthIndex % 12) + 1;
+
+            foreach ($jenisInsiden as $insidenIndex => $type) {
+                if($type == 'Documents'){
+                    $documentQuery = Document::whereYear(DB::raw("CONVERT_TZ(created_at, '+00:00', '+07:00')"), $targetYear)
+                    ->whereMonth(DB::raw("CONVERT_TZ(created_at, '+00:00', '+07:00')"), $targetMonth);
+
+                    $documentData = $documentQuery->pluck('created_at')->toArray();
+
+                    $dataKey = 'data' . $jenisInsiden[$insidenIndex];
+                    $data[$dataKey][] = [
+                        'label' => "Data {$jenisInsiden[$insidenIndex]} Bulan " . ($monthIndex + 1),
+                        'data' => $documentData,
+                    ];
+                }
+
+                if($type == 'Memos'){
+                    $memoQuery = Memo::whereYear(DB::raw("CONVERT_TZ(created_at, '+00:00', '+07:00')"), $targetYear)
+                    ->whereMonth(DB::raw("CONVERT_TZ(created_at, '+00:00', '+07:00')"), $targetMonth);
+
+                    $memoData = $memoQuery->pluck('created_at')->toArray();
+
+                    $dataKey = 'data' . $jenisInsiden[$insidenIndex];
+                    $data[$dataKey][] = [
+                        'label' => "Data {$jenisInsiden[$insidenIndex]} Bulan " . ($monthIndex + 1),
+                        'data' => $memoData,
+                    ];
+                }
+            }
+        }
+
+        return response()->json($data);
     }
 
 }

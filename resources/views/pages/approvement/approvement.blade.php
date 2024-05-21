@@ -25,11 +25,68 @@
                     </nav>
                 </div>
 
-                {{-- Tabel Content --}}
                 <div class="box">
-
-                    <!-- /.box-header -->
                     <div class="box-body">
+
+                        @if ($type === 'pending')
+                            <div class="document-progress">
+                                <h4 class="">Document Progress</h4>
+                                <div class="mb-2">
+                                    <div class="progress position-relative" style="height: 1.5rem">
+
+                                        @foreach ($document->approvals as $index => $approver)
+                                            @php
+                                                $progress =
+                                                    ($approver->approvers_queue / $calculation['total_approval']) * 100;
+                                                $width = 100 / ($calculation['total_approval'] + 1);
+                                            @endphp
+
+                                            @if ($index === 0)
+                                                <div class="progress-bar bg-primary rounded-0" role="progressbar"
+                                                    style="width: {{ $width }}%;" aria-valuenow="0" aria-valuemin="0"
+                                                    aria-valuemax="100">
+                                                    <span class="position-absolute start-0 ps-2">1.
+                                                        {{ $document->sender->name }}</span>
+                                                </div>
+
+                                                <div class="progress-bar bg-{{ $calculation['percentage'] >= $progress ? 'primary' : 'secondary' }} rounded-0"
+                                                    role="progressbar" style="width: {{ $width }}%;"
+                                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    <span
+                                                        class="position-absolute start-{{ $width }} ps-2">{{ $index + 2 }}.
+                                                        {{ $document->approvals[$index]->approver->name }}</span>
+                                                </div>
+                                            @else
+                                                <div class="progress-bar bg-{{ $calculation['percentage'] >= $progress ? 'primary' : 'secondary' }} rounded-0"
+                                                    role="progressbar" style="width: {{ $width }}%;"
+                                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                                    <span
+                                                        class="position-absolute start-{{ $width }} ps-2">{{ $index + 2 }}.
+                                                        {{ $document->approvals[$index]->approver->name }}</span>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                @if ($document->status === 'Pending')
+                                    <h5 class="">Please contact "{{ $calculation['approver_name'] }}" for approval.
+                                    </h5>
+                                @endif
+                                <hr>
+
+                            </div>
+                        @endif
+
+                        @if ($document->status === 'Rejected')
+                            <h4 class="fw-bold text-center text-decoration-underline mb-50">This Document has been Rejected
+                                by
+                                "{{ $calculation['repellent']->approver->name }}"</h4>
+                        @elseif ($document->status === 'Need Revision')
+                            <h4 class="fw-bold text-center text-decoration-underline mb-50">
+                                "{{ $calculation['repellent']->approver->name }}" want you to revise your document.
+                            </h4>
+                        @endif
 
                         @if ($document->path !== null)
                             @php
@@ -38,15 +95,11 @@
 
                             @foreach ($paths as $path)
                                 @if (Str::endsWith($path, ['.jpg', '.jpeg', '.png', '.gif', '.bmp']))
-                                    <!-- Jika file adalah gambar -->
                                     <img src="{{ Storage::url($path) }}" alt="Document Image">
                                 @elseif(Str::endsWith($path, ['.pdf']))
-                                    <!-- Jika file adalah PDF -->
-
                                     <embed src="{{ asset(Storage::url($path)) }}" type="application/pdf" width="100%"
                                         height="600px">
                                 @else
-                                    <!-- Jika file adalah dokumen atau format lainnya -->
                                     <a href="{{ Storage::url($path) }}" target="_blank">View Document</a>
                                 @endif
                             @endforeach
@@ -73,6 +126,7 @@
                                     {!! $document->document_text !!}
                                     {{ $document->placeNdate }}
                                 </p>
+
                                 <div class="table-responsive">
                                     <table class="table table-borderless text-center">
                                         <tbody>
@@ -132,8 +186,6 @@
                         <br>
 
                         @if ($type === 'approval' && $document->approval_required)
-                            <!-- Jika persetujuan diperlukan -->
-
                             <form action="{{ route('approve.document', $document->id) }}" method="POST">
                                 @csrf
                                 <input type="hidden" value="{{ Auth::user()->id }}" name="id">
@@ -150,7 +202,7 @@
                                 <div id="signature_pad" class="row justify-content-center d-none">
 
                                     @for ($i = 0; $i < $approval; $i++)
-                                        @if (Auth::user()->unit === 'ADMIN' || Auth::user()->id == $document->approvals[$i]->approver_id)
+                                        @if (Auth::user()->id == $document->approvals[$i]->approver_id)
                                             <div class="col-lg-4 col-12">
                                                 <div class="form-group">
                                                     <label for="nama_{{ $i }}" class="form-label">Nama

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('no_doc')->unique()->nullable();
+            $table->string('no_doc')->nullable();
             $table->string('subject');
             $table->string('description');
             $table->string('placeNdate')->nullable();
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('receiver_id');
             $table->string('status');
             $table->boolean('approval_required')->default(false);
+            $table->string('revision_count')->nullable();
             $table->timestamps();
 
             $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');

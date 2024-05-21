@@ -16,7 +16,7 @@
                 <div class="col-12 col-md-10">
                     <div class="content-top-agile p-3 p-md-20 pb-0">
                         <h2 class="text-primary text-center">Let's Get Started</h2>
-                        <p class="mb-0 text-center">Sign in to continue to Internal Document Approval Husada.</p>
+                        <p class="mb-0 text-center">Sign in to continue to Document Approval HUSADA.</p>
                     </div>
                 </div>
                 <div class="col-12 col-md-10">

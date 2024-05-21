@@ -16,7 +16,8 @@
                             <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
                                         class="mdi mdi-home-outline"></i></a>
                             </li>
-                            <li class="breadcrumb-item active" aria-current="page">Add Document</li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                {{ isset($function) ? 'Edit Document' : 'Add Document' }}</li>
                         </ol>
                     </nav>
                 </div>
@@ -28,10 +29,18 @@
                             @csrf
                             <div class="box-body">
 
+                                @if (isset($function))
+                                    @if (isset($document->revision_count))
+                                        <input type="hidden" name="revision_count"
+                                            value="{{ $document->revision_count + 1 }}">
+                                    @endif
+                                    <input type="hidden" name="revision_count" value="1">
+                                @endif
+
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <h4 class="box-title text-info mb-0"><i class="fal fa-user-injured"></i> Add new
-                                            Surat Permohonan
+                                        <h4 class="box-title text-info mb-0"><i class="fal fa-user-injured"></i>
+                                            {{ isset($function) ? 'Upload new revised of Surat Permohonan' : 'Add new Surat Permohonan' }}
                                         </h4>
                                     </div>
                                 </div>
@@ -43,7 +52,7 @@
                                 <div class="col-sm-12  my-3">
                                     <label for="subject" class="form-label text-bold">Subject</label>
                                     <input type="text" class="form-control" id="subject" name="subject" placeholder=""
-                                        required>
+                                        @if (isset($function)) value="{{ $document->subject }}" @endif required>
                                     <div class="invalid-feedback">
                                         Valid Subject is required.
                                     </div>
@@ -52,7 +61,8 @@
                                 <div class="col-sm-12  my-3">
                                     <label for="description" class="form-label text-bold">Description</label>
                                     <input type="text" class="form-control" id="description" name="description"
-                                        placeholder="">
+                                        placeholder=""
+                                        @if (isset($function)) value="{{ $document->description }} @endif">
                                     <div class="invalid-feedback">
                                         Valid Description is required.
                                     </div>
@@ -60,22 +70,39 @@
 
                                 <div class="col-sm-12 my-3">
                                     <label for="receiver" class="form-label text-bold">Receiver</label>
-                                    <select class="form-control select2" id="receiver" name="receiver">
-                                        <option selected disabled>Select one receiver</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                        @endforeach
-                                    </select>
+
+                                    @if (isset($function))
+                                        <input type="text" class="form-control" name="" placeholder=""
+                                            value="{{ $document->receiver->name }}" required disabled>
+                                        <input type="hidden" name="receiver" value="{{ $document->receiver_id }}">
+                                    @else
+                                        <select class="form-control select2" id="receiver" name="receiver">
+                                            <option selected disabled>Select one receiver</option>
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+
                                 </div>
 
                                 <div class="col-sm-12 my-3">
-                                    <div class="form-group" id="approvers">
-                                        <label for="approvers">Approver</label>
-                                        <div id="approvers-container">
-                                            <!-- Input akan ditambahkan secara dinamis menggunakan JavaScript -->
+                                    @if (isset($function))
+                                        <label for="approvers" class="text-bold">Approver</label>
+                                        <input type="text" class="form-control" id="approvers" name=""
+                                            placeholder="" value="{{ $approverNamesString }}" required disabled>
+                                        <input type="hidden" name="approvers[]" value="{{ $approverIdsString }}">
+                                        <input type="hidden" name="approvers_queue[]" value="{{ $approversQueueString }}">
+                                    @else
+                                        <div class="form-group" id="approvers">
+                                            <label for="approvers">Approver</label>
+
+                                            <div id="approvers-container">
+                                                <!-- Input akan ditambahkan secara dinamis menggunakan JavaScript -->
+                                            </div>
                                         </div>
-                                    </div>
-                                    <span id="add-approver-btn" class="btn btn-primary btn-sm">Add Approver</span>
+                                        <span id="add-approver-btn" class="btn btn-primary btn-sm">Add Approver</span>
+                                    @endif
                                 </div>
 
                                 <div class="col-sm-12  my-3">
@@ -108,18 +135,28 @@
                                             <div class="col-sm-12  my-3">
                                                 <label for="noDoc" class="form-label text-bold">No Document</label>
                                                 <input type="text" class="form-control" id="noDoc" name="no_doc"
-                                                    placeholder="">
+                                                    placeholder=""
+                                                    @if (isset($function)) value="{{ $document->no_doc }}" readonly @endif>
                                                 <div class="invalid-feedback">
                                                     Valid No Document is required.
                                                 </div>
                                             </div>
 
-                                            <textarea id="editor1" name="document_text" rows="10" cols="80">This is my textarea to be replaced with CKEditor.</textarea>
-
+                                            @if (isset($function))
+                                                <textarea id="editor1" name="document_text" rows="10" cols="80">
+                                                    {{ $document->document_text }}
+                                                </textarea>
+                                            @else
+                                                <textarea id="editor1" name="document_text" rows="10" cols="80">
+                                                    This is my textarea to be replaced with CKEditor.
+                                                </textarea>
+                                            @endif
                                             <div class="col-sm-12  my-3">
-                                                <label for="placeNdate" class="form-label text-bold">Place and Date</label>
+                                                <label for="placeNdate" class="form-label text-bold">Place and
+                                                    Date</label>
                                                 <input type="text" class="form-control" id="placeNdate"
-                                                    name="placeNdate" placeholder="">
+                                                    name="placeNdate" placeholder=""
+                                                    @if (isset($function)) value="{{ $document->placeNdate }}" @endif>
                                                 <div class="invalid-feedback">
                                                     Valid Place and Date is required.
                                                 </div>

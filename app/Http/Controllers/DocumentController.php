@@ -78,24 +78,35 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
 
-        // dd($request);
+        if (count($request->approvers) === 1 && count($request->approvers_queue) === 1) {
+            $approvers = explode(',', $request->approvers[0]);
+            $approvers_queue = explode(',', $request->approvers_queue[0]);
 
-        $signatureValues = $request->signature ?? []; // Default value []
+            // Hilangkan spasi yang tidak perlu di sekitar elemen
+            $approvers = array_map('trim', $approvers);
+            $approvers_queue = array_map('trim', $approvers_queue);
+
+            $request->merge([
+                'approvers' => $approvers,
+                'approvers_queue' => $approvers_queue
+            ]);
+
+        }
+
+        // dd($request->all());
+
+        $signatureValues = $request->signature ?? [];
 
         $signatureString = '';
 
-        // Periksa apakah $signatureValues tidak kosong
         if (!empty($signatureValues) && isset($request->signature[0])) {
-            // Inisialisasi string kosong untuk setiap kolom
 
-            // Loop untuk setiap nilai dalam kolom
             foreach ($signatureValues as $index => $value) {
-                // Tambahkan index dan nilai ke dalam string
+
                 $signatureString .= ($request->signature[$index] ?? '-') . ' --- ';;
             }
 
         }
-        // Hapus koma terakhir dari string
         $signatureString = rtrim($signatureString, ' --- ');
 
         $request->merge(['signature' => $signatureString]);
@@ -106,7 +117,7 @@ class DocumentController extends Controller
 
         // Validasi data
         $validator = Validator::make($request->all(), [
-            'no_doc' => 'nullable|unique:documents|string',
+            'no_doc' => 'nullable|string',
             'subject' => 'required|string',
             'description' => 'required|string',
             'placeNdate' => 'nullable|string',
@@ -165,6 +176,10 @@ class DocumentController extends Controller
             $document->placeNdate = $request->placeNdate;
         }
 
+        if($request->has('revision_count')){
+            $document->revision_count = $request->revision_count;
+        }
+
         // Simpan dokumen
         $document->subject = $request->subject;
         $document->signature = $request->signature;
@@ -198,31 +213,33 @@ class DocumentController extends Controller
 
     public function edit($id)
     {
-
         $title = 'Edit Document';
-
+        $function = 'edit';
         $users = User::whereNot('name', Auth::user()->name)->get();
-
         $document = Document::findOrFail($id);
-
-        $approvers = DocumentApproval::where('doc_id', $id)->get();
-
+        $approvals = DocumentApproval::where('doc_id', $id)->get();
         $approverNames = [];
+        $approverIds = [];
+        $approversQueue = [];
 
-        foreach ($approvers as $approver) {
+        foreach ($approvals as $index => $approval) {
             // Ambil data user berdasarkan approver_id dari tabel Documentapprover
-            $approver = User::find($approver->approver_id);
+            $approver = User::find($approval->approver_id);
 
             // Jika user ditemukan, tambahkan nama ke dalam array
-            if ($approvers) {
-                $approverNames[] = $approver->name;
+            if ($approvals) {
+                $approverIds[] = (clone $approver)->id;
+                $approverNames[] = (clone $approver)->name;
+                $approversQueue[] = $approval->approvers_queue;
             }
         }
 
         // Gabungkan semua nama menjadi satu string dengan koma sebagai pemisah
         $approverNamesString = implode(', ', $approverNames);
+        $approverIdsString = implode(', ', $approverIds);
+        $approversQueueString = implode(',', $approversQueue);
 
-        return view('pages.documents.editDocument', compact('users', 'title', 'document', 'approverNamesString'));
+        return view('pages.documents.addDocument', compact('users', 'title', 'document', 'approverNamesString', 'approverIdsString', 'approversQueueString', 'function'));
     }
 
     public function update(Request $request, $id)

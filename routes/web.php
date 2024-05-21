@@ -21,7 +21,7 @@ Route::get('/received', function() {
     return view('pages.documents.received');
 });
 
-Route::get('/login', [AuthController::class, 'index'])->name('login');
+Route::get('/login', [AuthController::class, 'index'])->name('login')->middleware('guest');
 Route::post('/authenticate', [AuthController::class, 'authenticate'])->name('authenticate');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -53,7 +53,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/memo/{type}/{id}', [MemoController::class, 'show'])->name('showMemo');
 
     Route::get('/inbox/{category}', [DashboardController::class, 'show'])->name('show');
+    Route::get('/data/{type}/{category}', [DashboardController::class, 'each'])->name('each');
     Route::get('/getPreviewData/{dataType}/{dataId}', [DataController::class, 'previewData']);
     Route::get('/filterData/{category}/{dataType}', [DataController::class, 'filterData']);
+
+    Route::get('/chart-data/{year}', [DataController::class, 'chartData']);
 
 });

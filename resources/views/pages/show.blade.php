@@ -24,17 +24,15 @@
                             </div>
                         </div>
                     </div>
-                    <!-- /.box-header -->
                     <div class="box-body vh-100">
                         <div class="mailbox-controls">
-                            <!-- Check all button -->
                             <button type="button" class="btn btn-primary btn-sm checkbox-toggle"><i
                                     class="ion ion-android-checkbox-outline-blank"></i>
                             </button>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-primary btn-sm"><i
                                         class="fa-regular fa-trash"></i></button>
-                                @if ($boxTitle != 'Approvement')
+                                @if ($boxTitle == 'Inbox' || $boxTitle == 'Sent')
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-primary btn-sm dropdown-toggle"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -60,15 +58,22 @@
                                         @foreach ($result as $data)
                                             <tr>
                                                 <td><input type="checkbox"></td>
-                                                <td class="mailbox-star"><a href="#"><i
-                                                            class="fa fa-star text-yellow"></i></a></td>
                                                 <td>
+                                                    @if (isset($data->status))
+                                                        {{ $data->status }}
+                                                    @else
+                                                        <a href="#" class="mailbox-star">
+                                                            <i class="fa fa-star text-yellow"></i>
+                                                        </a>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    {{-- @dump($category) --}}
                                                     <a href="{{ $data->source === 'memos' ? route('showMemo', ['type' => $category, 'id' => $data->id]) : route('showDocument', ['type' => $category, 'id' => $data->id]) }}"
                                                         class="mailbox-name mb-0 fs-16 fw-600">{{ $data->subject }}</a>
                                                     <p class="mailbox-subject mb-0">
                                                         {{ $data->sender->name }}
                                                     </p>
-                                                    {{-- @dump($data->id, $data->source) --}}
                                                     <span
                                                         onclick="showPreview('{{ $data->id }}', '{{ $data->source }}')"
                                                         class="d-inline-block text-truncate max-w-800 m-0 spanTruncate">
@@ -78,6 +83,13 @@
                                                 <td class="mailbox-attachment">
                                                     @if ($data->path)
                                                         <i class="fa fa-paperclip"></i>
+                                                    @endif
+
+                                                    @if ($data->status === 'Need Revision')
+                                                        <a href="{{ route('editDocument', $data->id) }}" class="">
+                                                            <i class="fa-solid fa-file-pen"></i>
+                                                            <span class="text-decoration-underline">Edit</span>
+                                                        </a>
                                                     @endif
                                                 </td>
 
@@ -102,15 +114,11 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- /.table -->
                         </div>
-                        <!-- /.mail-box-messages -->
                     </div>
-                    <!-- /.box-body -->
                 </div>
-                <!-- /. box -->
             </div>
-            <!-- /.col -->
+
             <div id="secondaryDiv" class="col-xl-5 col-12 d-none">
                 <div class="box">
                     <div class="box-body pt-10">
@@ -155,11 +163,8 @@
                         <button type="button" class="btn btn-danger"><i class="fa fa-trash-o"></i></button>
                         <button type="button" class="btn btn-warning"><i class="fa fa-print"></i></button>
                     </div>
-                    <!-- /.box-footer -->
                 </div>
-                <!-- /. box -->
             </div>
-            <!-- /.col -->
         </div>
 
         @include('script.document.preview')

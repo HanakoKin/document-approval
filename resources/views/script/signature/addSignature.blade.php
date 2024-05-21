@@ -60,7 +60,7 @@
         console.log({!! $document->approvals[0]->approver_id !!});
 
         @for ($i = 0; $i < $approval; $i++)
-            @if (Auth::user()->jabatan == 'ADMIN' || Auth::user()->id == $document->approvals[$i]->approver_id)
+            @if (Auth::user()->id == $document->approvals[$i]->approver_id)
                 initializeSignaturePad('signature-pad-{{ $i }}', 'signature[{{ $i + 1 }}]',
                     'clear-{{ $i }}', 'undo-{{ $i }}', 'save-{{ $i }}',
                     'modal-{{ $i }}');

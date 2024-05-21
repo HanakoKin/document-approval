@@ -46,14 +46,39 @@ class DocumentApprovalController extends Controller
         if ($type === 'sent') {
 
             $title = 'Document Sent Page';
-
             $document = Document::find($id);
 
-        } else if ($type === 'receive') {
+        } else if ($type === 'receive' || $type === 'approved') {
 
-            $title = 'Document Receive Page';
+            if($type === 'approved'){
+                $title = 'Document Approved Page';
+            }else{
+                $title = 'Document Received Page';
+            }
 
             $document = Document::where('id', $id)->where('status', 'Approved')->first();
+
+        } else if ($type === 'pending') {
+
+            $title = 'Document Pending Page';
+            $document = Document::where('id', $id)->where('status', '!=', 'Approved')->first();
+
+            $total_approval = $document->approvals->count();
+            $current_progress = (clone $document)->approvals->where('approval_date', '!=', null)->count();
+            $percentage = ($current_progress / $total_approval) * 100;
+
+            $approver_name = (clone $document)->approvals->where('approval_status', '!=', 'Approved')->first();
+            $approver_name = $approver_name->approver->name;
+
+            $repellent = (clone $document)->approvals->where('approval_status', '!=', 'Approved')->where('approval_date', null)->first();
+
+            $compact = [
+                'total_approval' => $total_approval,
+                'current_progress' => $current_progress,
+                'percentage' => $percentage,
+                'approver_name' => $approver_name,
+                'repellent' => isset($repellent) ? $repellent : null
+            ];
 
         } else if ($type === 'approval'){
 
@@ -76,18 +101,20 @@ class DocumentApprovalController extends Controller
         }
 
         $signature = explode(' --- ', $document->signature);
-
-        // dd($signature);
-
         $approval = $document->approvals->count();
 
-        return view('pages.approvement.approvement', compact('title', 'document', 'type', 'approval', 'signature'));
+        return view('pages.approvement.approvement', [
+            'title' => $title,
+            'document' => $document,
+            'type' => $type,
+            'approval' => $approval,
+            'signature' => $signature,
+            'calculation' => isset($compact) ? $compact : null
+        ]);
     }
 
     public function approve(Request $request, Document $document)
     {
-
-        // dd($document);
 
         $approver_id = $request->id;
 
@@ -104,8 +131,6 @@ class DocumentApprovalController extends Controller
                 'approval_date' => Carbon::now(), // Menggunakan waktu saat ini
             ]);
         }
-
-        // dd($document->response->catatan);
 
         if($request->has('catatan')){
             DocumentResponse::create([
@@ -152,8 +177,6 @@ class DocumentApprovalController extends Controller
             // Mengambil jumlah persyaratan persetujuan setelah diubah
             $required_approver = $data->where('approval_status', 'Approved')->count();
 
-            // DocumentApprovalRequirement::where('doc_id', $document->id)->update(['required_approvers' => DB::raw('required_approvers - 1')]);
-
             $document->requirement->update([
                 'required_approvers' => $document->requirement->required_approvers - $required_approver
             ]);
@@ -166,46 +189,49 @@ class DocumentApprovalController extends Controller
             }
         } else if ($statusData === 'Need Revision') {
 
-            $signature = explode(' --- ', $document->signature);
-
-            $document->update([
-                'signature' => $signature[0],
-                'status' => $statusData,
-            ]);
-
             $revisions = DocumentApproval::where('doc_id', $document->id)->get();
-
-            // dd($revisions->count());
 
             foreach ($revisions as $revision){
                 $revision->update([
-                    'approval_status' => 'Unchecked',
-                    'approval_date' => null,
+                    'approval_status' => $statusData,
                 ]);
             }
+
+            DocumentApproval::where('doc_id', $document->id)->where('approver_id', Auth::user()->id)
+                ->update([
+                    'approval_date' => null,
+                ]);
 
             $document->requirement->update([
                 'required_approvers' => $revisions->count()
             ]);
 
-        } else {
-
             $document->update([
-                'approval_required' => false,
-                'status' => $statusData
+                'status' => $statusData,
             ]);
+
+        } else {
 
             $rejects = DocumentApproval::where('doc_id', $document->id)->get();
 
             foreach ($rejects as $reject){
                 $reject->update([
                     'approval_status' => $statusData,
-                    'approval_date' => null,
                 ]);
             }
 
+            DocumentApproval::where('doc_id', $document->id)->where('approver_id', Auth::user()->id)
+                ->update([
+                    'approval_date' => null,
+                ]);
+
             $document->requirement->update([
                 'required_approvers' => 0,
+            ]);
+
+            $document->update([
+                'approval_required' => false,
+                'status' => $statusData
             ]);
 
         }

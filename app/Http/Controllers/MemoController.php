@@ -62,7 +62,7 @@ class MemoController extends Controller
     public function store(Request $request)
     {
 
-        // dd($request);
+        $request['signature'] = $request['signature'][0];
 
         // Validasi data
         $validator = Validator::make($request->all(), [

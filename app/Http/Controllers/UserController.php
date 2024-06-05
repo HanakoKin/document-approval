@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,12 +15,10 @@ class UserController extends Controller
     {
 
         $title = 'User Management Page';
-
-        $users = User::all();
-
+        $users = User::orderBy('created_at', 'desc')->get();
         $totals = $users->count();
 
-        return view('pages.admin.user', compact('users', 'totals', 'title'));
+        return view('pages.admin.index', compact('users', 'totals', 'title'));
     }
 
     // Menampilkan formulir untuk menambah pengguna
@@ -29,20 +26,29 @@ class UserController extends Controller
     {
 
         $title = 'Add User Page';
+        $data = new User();
+        $page_meta = [
+            // 'title' => 'Add User Page',
+            'function' => 'create',
+            'method' => 'POST',
+            'url' => route('users.store')
+        ];
 
-        $unit = Unit::all();
-
-        return view('pages.admin.addUser', compact('unit', 'title'));
+        return view('pages.admin.form', compact('title', 'data', 'page_meta'));
     }
 
     // Menyimpan pengguna baru ke dalam database
     public function store(Request $request)
     {
+
+        // dd($request->all());
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'unit' => 'required|string|max:255',
+            'NIK' => 'required|string|unique:users|min:3',
+            'jabatan' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -54,19 +60,23 @@ class UserController extends Controller
 
         User::create($validatedData);
 
-        return redirect()->route('users')->with('success', 'User created successfully.');
+        return to_route('users.index')->with('success', 'User created successfully.');
     }
 
     // Menampilkan formulir untuk mengedit pengguna
     public function edit($id)
     {
+
         $title = 'Edit User Page';
-
         $data = User::findOrFail($id);
+        $page_meta = [
+            // 'title' => 'Add User Page',
+            'function' => 'edit',
+            'method' => 'PUT',
+            'url' => route('users.update', $data->id)
+        ];
 
-        $unit = Unit::all();
-
-        return view('pages.admin.editUser', compact('data', 'title', 'unit'));
+        return view('pages.admin.form', compact('title', 'data', 'page_meta'));
     }
 
     // Mengupdate pengguna ke dalam database
@@ -74,7 +84,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'unit' => 'required|string',
+            'jabatan' => 'required|string',
         ]);
 
         $validatedData = $validator->validated();
@@ -86,7 +96,7 @@ class UserController extends Controller
 
         User::where('id', $id)->update($validatedData);
 
-        return redirect()->route('users')->with('success', 'User updated successfully.');
+        return to_route('users.index')->with('success', 'User updated successfully.');
     }
 
     // Menghapus pengguna dari database
@@ -96,6 +106,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        return redirect()->route('users')->with('success', 'User deleted successfully.');
+        return to_route('users.index')->with('success', 'User deleted successfully.');
     }
 }

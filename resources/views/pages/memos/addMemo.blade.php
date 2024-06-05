@@ -24,7 +24,7 @@
                 <div class="row d-flex justify-content-center">
                     <div class="col-md-8 col-12">
                         {{-- Form --}}
-                        <form action="{{ route('addMemo') }}" method="post" enctype="multipart/form-data">
+                        <form action="{{ route('memo.create') }}" method="post" enctype="multipart/form-data">
                             @csrf
                             <div class="box-body">
 

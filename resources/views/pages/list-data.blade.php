@@ -30,13 +30,12 @@
                                     class="ion ion-android-checkbox-outline-blank"></i>
                             </button>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-primary btn-sm"><i
-                                        class="fa-regular fa-trash"></i></button>
+                                <button type="button" class="btn btn-primary btn-sm"><i class="fal fa-trash"></i></button>
                                 @if ($boxTitle == 'Inbox' || $boxTitle == 'Sent')
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-primary btn-sm dropdown-toggle"
                                             data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fa-duotone fa-filters"></i>
+                                            <i class="fal fa-filter"></i>
                                             <span class="caret"></span>
                                         </button>
                                         <div class="dropdown-menu">
@@ -49,13 +48,17 @@
                                 @endif
                             </div>
                             <button type="button" id="refreshButton" class="btn btn-primary btn-sm"><i
-                                    class="fa-duotone fa-arrows-rotate"></i></button>
+                                    class="fal fa-sync-alt"></i></button>
                         </div>
                         <div class="mailbox-messages inbox-bx">
                             <div class="table-responsive">
                                 <table class="table table-hover table-striped">
                                     <tbody id="tableBody">
                                         @foreach ($result as $data)
+                                            @php
+                                                $dispositions = App\Models\Disposisi::where('doc_id', $data->id)->get();
+                                            @endphp
+
                                             <tr>
                                                 <td><input type="checkbox"></td>
                                                 <td>
@@ -68,8 +71,16 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    {{-- @dump($category) --}}
-                                                    <a href="{{ $data->source === 'memos' ? route('showMemo', ['type' => $category, 'id' => $data->id]) : route('showDocument', ['type' => $category, 'id' => $data->id]) }}"
+
+                                                    @if ($category !== 'receive' && $category !== 'approval' && $category !== 'disposisi')
+                                                        @php
+                                                            $category = 'sent';
+                                                        @endphp
+                                                    @endif
+
+                                                    {{-- @dump($data->id) --}}
+
+                                                    <a href="{{ $data->source === 'memos' ? route('memo.show', ['type' => $category, 'id' => $data->id]) : route('document.show', ['type' => $category, 'id' => $data->id]) }}"
                                                         class="mailbox-name mb-0 fs-16 fw-600">{{ $data->subject }}</a>
                                                     <p class="mailbox-subject mb-0">
                                                         {{ $data->sender->name }}
@@ -86,7 +97,7 @@
                                                     @endif
 
                                                     @if ($data->status === 'Need Revision')
-                                                        <a href="{{ route('editDocument', $data->id) }}" class="">
+                                                        <a href="{{ route('document.edit', $data->id) }}" class="">
                                                             <i class="fa-solid fa-file-pen"></i>
                                                             <span class="text-decoration-underline">Edit</span>
                                                         </a>

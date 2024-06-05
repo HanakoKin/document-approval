@@ -11,8 +11,8 @@
             // some browsers report devicePixelRatio as less than 1
             // and only part of the canvas is cleared then.
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = 475;
-            canvas.height = 256;
+            canvas.width = 621 * ratio
+            canvas.height = 270 * ratio;
             canvas.getContext("2d").scale(ratio, ratio);
         }
 
@@ -70,13 +70,16 @@
 </script>
 
 <script>
-    document.getElementById("approval_status").addEventListener("change", function() {
-        var selectedOption = this.value;
-        console.log(selectedOption);
-        if (selectedOption === "Approved") {
-            document.getElementById("signature_pad").classList.remove("d-none");
-        } else {
-            document.getElementById("signature_pad").classList.add("d-none");
-        }
-    });
+    @if ($type === 'approval')
+
+        document.getElementById("approval_status").addEventListener("change", function() {
+            var selectedOption = this.value;
+            console.log(selectedOption);
+            if (selectedOption === "Approved") {
+                document.getElementById("signature_pad").classList.remove("d-none");
+            } else {
+                document.getElementById("signature_pad").classList.add("d-none");
+            }
+        });
+    @endif
 </script>

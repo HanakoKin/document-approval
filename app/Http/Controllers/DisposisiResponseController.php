@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class DocumentResponseController extends Controller
+class DisposisiResponseController extends Controller
 {
     //
 }

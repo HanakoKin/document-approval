@@ -16,7 +16,7 @@
                                         class="align-self-end h-80 w-80">
                                     <div class="d-flex flex-column flex-grow-1 ms-2">
                                         <h5 class="box-title fs-16 mb-2">Surat Permohonan</h5>
-                                        <a href="{{ route('createDocument') }}">Send now!</a>
+                                        <a href="{{ route('document.create') }}">Send now!</a>
                                     </div>
                                 </div>
                             </div>
@@ -28,7 +28,7 @@
                                         class="align-self-end h-80 w-80">
                                     <div class="d-flex flex-column flex-grow-1 ms-2">
                                         <h5 class="box-title fs-16 mb-2">Memo</h5>
-                                        <a href="{{ route('createMemo') }}">Send now!</a>
+                                        <a href="{{ route('memo.create') }}">Send now!</a>
                                     </div>
                                 </div>
                             </div>

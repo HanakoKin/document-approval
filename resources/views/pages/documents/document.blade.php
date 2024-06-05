@@ -20,82 +20,51 @@
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="/dashboard"><i class="mdi mdi-home-outline"></i></a>
                             </li>
-                            <li class="breadcrumb-item active" aria-current="page">Tabel Document</li>
+                            <li class="breadcrumb-item active" aria-current="page">Tabel Approvement</li>
                         </ol>
                     </nav>
                 </div>
 
-                {{-- Tabel Content --}}
                 <div class="box">
-                    <div class="box-header py-4">
-                        <h4 class="box-title">Total Document {{ ucFirst(trans($category)) }} : {{ $totals }} </h4>
-                        @if ($category === 'sent')
-                            <div class="box-controls pull-right d-md-flex d-none">
-                                <a href="{{ route('createDocument') }}"
-                                    class="btn btn-info btn-sm mb-2 text-decoration-none">
-                                    <i class="fal fa-plus-circle"></i> Add
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                    <!-- /.box-header -->
                     <div class="box-body">
-                        <div class="table-responsive">
-                            <table id="example" class="table table-bordered table-hover display margin-top-10">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th scope="col" class="">Subject</th>
-                                        <th scope="col" class="min-w-150">File Name</th>
-                                        <th scope="col" class="min-w-150">Sender</th>
-                                        <th scope="col" class="min-w-150">Receiver</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Approval Required</th>
-                                        <th scope="col" class="min-w-200">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($documents as $document)
-                                        <tr class="text-center">
-                                            <td>{{ $document->subject }}</td>
-                                            <td>{{ $document->filename }}</td>
-                                            <td>{{ $document->sender->name }}</td>
-                                            <td>{{ $document->receiver->name }}</td>
-                                            <td>{{ $document->status }}</td>
-                                            <td>{{ $document->approval_required !== 0 ? 'True' : 'False' }}</td>
-                                            <td>
 
-                                                <a class="btn btn-success btn-sm me-2 mb-2 text-decoration-none"
-                                                    href="{{ route('showDocument', ['type' => $type, 'id' => $document->id]) }}">
-                                                    <i class="fal fa-eye"></i> Lihat
-                                                </a>
+                        @foreach ($document->approvals as $approver)
+                            @if (auth()->user()->id === $approver->approver_id && $approver->approval_status !== 'Approved')
+                                @php
+                                    $approval_status = true;
+                                @endphp
+                            @endif
+                        @endforeach
 
-                                                @if ($document->status === 'Need Revision')
-                                                    <a class="btn btn-warning btn-sm me-2 mb-2 text-decoration-none"
-                                                        href="{{ route('editDocument', $document->id) }}"><i
-                                                            class="fal fa-pen"></i>
-                                                        Edit
-                                                    </a>
-                                                @endif
+                        @if (!(($type === 'approval' && isset($approval_status)) || $type === 'receive'))
+                            @include('pages.documents.components.progress-bar')
+                        @endif
 
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        @if ($dispositions->count() > 0 || (auth()->user()->jabatan === 'ADMIN' && $type === 'disposisi'))
+                            @include('pages.documents.components.disposition-process')
+                            <hr>
+                        @endif
+
+                        <br>
+
+                        <div class="p-3">
+                            @include('pages.documents.components.show-file')
                         </div>
+
+                        <br>
+                        <hr>
+                        <br>
+
+                        @if ($type === 'approval' && $document->approval_required && isset($approval_status))
+                            @include('pages.documents.components.approval-process')
+                        @endif
+
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Modal Show Data --}}
-        @include('modal.admin.userShow')
-
-        {{-- JS for Modal --}}
-        @include('script.admin.userShow')
-
-        {{-- JS for Delete --}}
-        @include('script.confirmation.confirm-delete')
+        @include('script.signature.addSignature')
 
     </section>
 @endsection

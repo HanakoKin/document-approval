@@ -25,7 +25,7 @@
                 <div class="row d-flex justify-content-center">
                     <div class="col-md-8 col-12">
                         {{-- Form --}}
-                        <form action="{{ route('addDocument') }}" method="post" enctype="multipart/form-data">
+                        <form action="{{ route('document.store') }}" method="post" enctype="multipart/form-data">
                             @csrf
                             <div class="box-body">
 
@@ -108,11 +108,14 @@
                                 <div class="col-sm-12  my-3">
                                     <label for="sender" class="form-label text-bold">Sender</label>
                                     <input type="text" class="form-control" id="sender" name="" placeholder=""
-                                        value="{{ Auth::user()->name }}" required readonly>
+                                        value="{{ isset($function) ? $document->sender->name : Auth::user()->name }}"
+                                        required readonly>
                                     <div class="invalid-feedback">
                                         Valid Sender is required.
                                     </div>
-                                    <input type="hidden" value="{{ Auth::user()->id }}" name="sender">
+                                    <input type="hidden"
+                                        value="{{ isset($function) ? $document->sender->id : Auth::user()->id }}"
+                                        name="sender">
                                 </div>
 
                                 <div class="col-sm-12  my-3">
@@ -211,10 +214,8 @@
                                                         <div class="modal-dialog" role="document">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
-                                                                    <h4 class="modal-title" id="myModalLabel">
-                                                                        Preview
-                                                                        Tanda
-                                                                        Tangan</h4>
+                                                                    <h4 class="modal-title" id="myModalLabel">Preview
+                                                                        Tanda Tangan</h4>
                                                                     <button type="button" class="btn-close"
                                                                         data-bs-dismiss="modal"
                                                                         aria-label="Close"></button>
@@ -233,10 +234,12 @@
                             </div>
 
                             <div class="box-footer float-right">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary"
+                                    onclick="this.disabled = true; this.form.submit();">
                                     <i class="ti-save-alt"></i> Save
                                 </button>
                             </div>
+
                         </form>
                     </div>
                 </div>

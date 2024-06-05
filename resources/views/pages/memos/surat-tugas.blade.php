@@ -31,6 +31,16 @@
                     <!-- /.box-header -->
                     <div class="box-body">
 
+                        @if ($type === 'sent')
+                            <div class="document-progress">
+                                <h4 class="">The memo was sent to receivers at
+                                    <span
+                                        class="text-decoration-underline">{{ Carbon\Carbon::parse($memo->updated_at)->setTimezone('Asia/Jakarta')->format('j F Y, g:i A') }}</span>
+                                </h4>
+                                <hr>
+                            </div>
+                        @endif
+
                         @if ($memo->path !== null)
                             @php
                                 $paths = explode(' - ', $memo->path);

@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('document_approvals', function (Blueprint $table) {
+        Schema::create('disposisis', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('doc_id');
-            $table->unsignedBigInteger('approver_id');
-            $table->string('approvers_queue');
-            $table->string('approval_status');
-            $table->string('response')->nullable();
-            $table->boolean('disposisi_status')->default(false);
-            $table->timestamp('approval_date')->nullable();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
+            $table->text('disposisi')->nullable();
             $table->timestamps();
 
             $table->foreign('doc_id')->references('id')->on('documents')->onDelete('cascade');
-            $table->foreign('approver_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('receiver_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('document_approvals');
+        Schema::dropIfExists('disposisi');
     }
 };

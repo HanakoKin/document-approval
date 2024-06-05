@@ -7,77 +7,143 @@ use App\Models\Document;
 use Illuminate\Http\Request;
 use App\Models\DocumentApproval;
 use App\Http\Controllers\Controller;
+use App\Models\Disposisi;
+use App\Models\DisposisiResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\DocumentApprovalRequirement;
 
+use function Laravel\Prompts\error;
+
 class DocumentController extends Controller
 {
-    public function index($category)
+
+    public function show($type, $id)
     {
 
-        $type = $category;
+        try {
+            $documentQuery = Document::where('id', $id);
 
-        if ($category === 'receive') {
+            if ($type === 'sent') {
 
-            $title = 'All Received Documents';
+                $title = 'Document ' . ucfirst($type) . ' Page';
 
-            if (Auth::user()->jabatan === 'ADMIN') {
-                $documents = Document::all();
-            } else {
-                $documents = Document::where('status', 'Approved')->whereHas('approvals', function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->where('receiver_id', Auth::user()->id);
+                if (Auth::user()->jabatan == 'ADMIN'){
+                    $document = $documentQuery->first();
+                } else {
+                    $document = $documentQuery->where('sender_id', Auth::user()->id)->first();
+                }
+
+                $notes = $document->approvals->where('response', '!=', null);
+
+            } else if ($type === 'receive') {
+
+                $title = 'Document Received Page';
+
+                if (Auth::user()->jabatan !== 'ADMIN') {
+                    $documentQuery->where(function ($query) {
+                        $query->where('receiver_id', Auth::user()->id)
+                            ->orWhere(function ($query) {
+                                $query->whereExists(function ($subquery) {
+                                    $subquery->from('document_approvals')
+                                        ->whereColumn('document_approvals.doc_id', 'documents.id')
+                                        ->where('document_approvals.approver_id', Auth::user()->id);
+                                })
+                                ->whereNotExists(function ($lastquery) {
+                                    $lastquery->from('document_approvals as da2')
+                                        ->whereColumn('da2.doc_id', 'documents.id')
+                                        ->whereNotIn('da2.approval_status', ['Approved']);
+                                });
+                            })
+                            ->orWhereHas('disposisi', function ($query) {
+                                $query->where('receiver_id', Auth::user()->id);
+                            });
                     });
-                })->get();
-            }
-        } else if ($category === 'sent') {
+                }
 
-            $title = 'All Sent Documents';
+                $document = $documentQuery->where('status', 'Published')->where('id', $id)->first();
 
-            if (Auth::user()->jabatan === 'ADMIN') {
-                $documents = Document::all();
-            } else {
-                $documents = Document::whereHas('approvals', function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->where('sender_id', Auth::user()->id);
+            } else if ($type === 'approval'){
+
+                $title = 'Approvement Page';
+
+                if(Auth::user()->jabatan === 'ADMIN'){
+                    $document = $documentQuery->whereHas('approvals')->first();
+                } else {
+                    $document = $documentQuery->whereHas('approvals', function ($query) {
+                        $query->where(function ($subQuery) {
+                            $subQuery->where('approver_id', Auth::user()->id);
+                            // ->where(function ($subQuery) {
+                            //     $subQuery->where('approvers_queue', 1)
+                            //         ->where('approval_status', 'Unchecked')
+                            //         ->orWhere('approval_status', 'Pending');
+                            // });
+                        });
+                    })->first();
+                }
+            } else if ($type === 'disposisi'){
+                $title = 'Disposisi Page';
+
+                $users = User::all();
+
+                if (Auth::user()->jabatan === 'ADMIN') {
+                    $document = $documentQuery;
+                } else {
+                    $document = $documentQuery->whereHas('disposisi', function ($query) {
+                        $query->where('receiver_id', Auth::user()->id);
                     });
-                })->get();
-            }
-        } else if ($category === 'approval') {
+                }
 
-            $title = 'All Documents Approval';
-
-            if (Auth::user()->jabatan === 'ADMIN') {
-                $documents = Document::all();
-            } else {
-                $documents = Document::whereHas('approvals', function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->where('receiver_id', Auth::user()->id)->where('status', 'Approve');
-                    });
-                })->get();
+                $document = $document->where('status', '!=', 'Published')->first();
             }
+
+            $dispositions = Disposisi::where('doc_id', $id)->get();
+
+            $total_approval = $document->approvals->count();
+            $current_progress = (clone $document)->approvals->where('approval_date', '!=', null)->count();
+            $percentage = ($current_progress / $total_approval) * 100;
+
+            $approver_name = (clone $document)->approvals->where('approval_status', '!=', 'Approved')->first();
+            $repellent = (clone $document)->approvals->where('approval_status', '!=', 'Approved')->where('approval_date', null)->first();
+
+            $compact = [
+                'total_approval' => $total_approval,
+                'current_progress' => $current_progress,
+                'percentage' => $percentage,
+                'approver_name' => isset($approver_name) ? $approver_name->approver->name : null,
+                'repellent' => isset($repellent) ? $repellent : null
+            ];
+
+            $signature = explode(' --- ', $document->signature);
+            $approval = $document->approvals->count();
+
+            return view('pages.documents.document', [
+                'title' => $title,
+                'document' => $document,
+                'type' => $type,
+                'approval' => $approval,
+                'signature' => $signature,
+                'calculation' => isset($compact) ? $compact : null,
+                'notes' => isset($notes) ? $notes : null,
+                'users' => isset($users) ? $users : null,
+                'dispositions' => isset($dispositions) ? $dispositions : null
+            ]);
+        } catch (\Throwable $th) {
+            abort(404);
         }
 
-        $totals = $documents->count();
-
-        return view('pages.documents.document', compact('title', 'documents', 'totals', 'category', 'type'));
     }
 
     public function create()
     {
-
         $title = 'Add new Document';
-
         $users = User::whereNot('name', Auth::user()->name)->get();
-
         return view('pages.documents.addDocument', compact('users', 'title'));
     }
 
     public function store(Request $request)
     {
-
+        // Untuk memisal approvers dan approvers_queue dari bentuk array menjadi bentuk object
         if (count($request->approvers) === 1 && count($request->approvers_queue) === 1) {
             $approvers = explode(',', $request->approvers[0]);
             $approvers_queue = explode(',', $request->approvers_queue[0]);
@@ -93,26 +159,20 @@ class DocumentController extends Controller
 
         }
 
-        // dd($request->all());
-
         $signatureValues = $request->signature ?? [];
-
         $signatureString = '';
 
         if (!empty($signatureValues) && isset($request->signature[0])) {
 
             foreach ($signatureValues as $index => $value) {
-
                 $signatureString .= ($request->signature[$index] ?? '-') . ' --- ';;
             }
 
         }
+
         $signatureString = rtrim($signatureString, ' --- ');
-
         $request->merge(['signature' => $signatureString]);
-
         $approval_count = count($request->input('approvers'));
-
         $request->merge(['approval_count' => $approval_count]);
 
         // Validasi data
@@ -136,7 +196,12 @@ class DocumentController extends Controller
         }
 
         $document = new Document();
-
+        $fillableAttributes = ['no_doc', 'description', 'placeNdate', 'revision_count', 'subject', 'signature'];
+        foreach ($fillableAttributes as $attribute) {
+            if ($request->has($attribute)) {
+                $document->$attribute = $request->$attribute;
+            }
+        }
         if($request->hasFile('document_upload')){
 
             $path = '';
@@ -164,25 +229,6 @@ class DocumentController extends Controller
 
         }
 
-        if($request->has('no_doc')){
-            $document->no_doc = $request->no_doc;
-        }
-
-        if($request->has('description')){
-            $document->description = $request->description;
-        }
-
-        if($request->has('placeNdate')){
-            $document->placeNdate = $request->placeNdate;
-        }
-
-        if($request->has('revision_count')){
-            $document->revision_count = $request->revision_count;
-        }
-
-        // Simpan dokumen
-        $document->subject = $request->subject;
-        $document->signature = $request->signature;
         $document->sender_id = $request->sender;
         $document->receiver_id = $request->receiver;
         $document->status = 'Pending';
@@ -196,7 +242,8 @@ class DocumentController extends Controller
                     'doc_id' => $document->id,
                     'approver_id' => $approver,
                     'approvers_queue' => $request->approvers_queue[$index],
-                    'approval_status' => 'Unchecked' // Atur status persetujuan sesuai kebutuhan
+                    'approval_status' => 'Unchecked', // Atur status persetujuan sesuai kebutuhan
+                    'disposisi_status' => false,
                 ]);
             }
 
@@ -207,12 +254,12 @@ class DocumentController extends Controller
             ]);
         }
 
-        // Redirect ke halaman yang sesuai atau tampilkan pesan sukses
-        return redirect()->route('show', 'sent')->with('success', 'Success send a document.');
+        return redirect()->route('list-data', 'sent')->with('success', 'Success send a document.');
     }
 
     public function edit($id)
     {
+
         $title = 'Edit Document';
         $function = 'edit';
         $users = User::whereNot('name', Auth::user()->name)->get();
@@ -223,7 +270,6 @@ class DocumentController extends Controller
         $approversQueue = [];
 
         foreach ($approvals as $index => $approval) {
-            // Ambil data user berdasarkan approver_id dari tabel Documentapprover
             $approver = User::find($approval->approver_id);
 
             // Jika user ditemukan, tambahkan nama ke dalam array
@@ -242,26 +288,4 @@ class DocumentController extends Controller
         return view('pages.documents.addDocument', compact('users', 'title', 'document', 'approverNamesString', 'approverIdsString', 'approversQueueString', 'function'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $validatedData = $request->validate([
-            'document' => 'required|file|max:10240',
-        ]);
-
-        $path = $request->file('document')->store('public/documents');
-
-        $document = Document::findOrFail($id);
-        $documentApproval = DocumentApproval::where('doc_id', $id)->where('approval_status', 'Need Revision')->first();
-
-        $document->name = $request->file('document')->getClientOriginalName();
-        $document->path = $path;
-        $document->status = 'Pending';
-        $document->save();
-
-        $documentApproval->approval_status = 'Unchecked';
-        $documentApproval->approval_date = NULL;
-        $documentApproval->save();
-
-        return redirect()->route('documents', 'sent')->with('success', 'Success send a revision document.');
-    }
 }

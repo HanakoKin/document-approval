@@ -10,7 +10,6 @@ class AuthController extends Controller
 {
     public function index()
     {
-
         $title = 'Login Page';
 
         return view('auth.pages.login', compact('title'));
@@ -18,7 +17,6 @@ class AuthController extends Controller
 
     public function authenticate(Request $request)
     {
-
         $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required'
@@ -36,7 +34,6 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-
         Auth::logout();
 
         $request->session()->flush();

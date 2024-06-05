@@ -70,4 +70,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(DocumentApprovalRequirement::class, 'approver_id');
     }
+
+    public function disposisi()
+    {
+        return $this->hasOne(Disposisi::class, 'user_id');
+    }
+
+    public function response()
+    {
+        return $this->hasMany(DisposisiResponse::class, 'response_sender');
+    }
+
 }
